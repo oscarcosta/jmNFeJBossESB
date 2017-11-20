@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jbossesb-deployment>
+  <depends>org.hornetq:module=JMS,type=Queue,name="jm_file_esb"</depends>
+  <depends>org.hornetq:module=JMS,type=Queue,name="jm_text_esb"</depends>
+  <depends>org.hornetq:module=JMS,type=Queue,name="jm_nfe_esb"</depends>
+  <depends>org.hornetq:module=JMS,type=Queue,name="jm_nfe_enviada_esb"</depends>
+  <depends>org.hornetq:module=JMS,type=Queue,name="jm_nfe_processada_esb"</depends>
+  <depends>jboss.esb:deployment=smooks.esb</depends>
+</jbossesb-deployment>

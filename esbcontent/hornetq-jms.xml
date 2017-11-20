@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<configuration xmlns="urn:hornetq" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:hornetq /schema/hornetq-jms.xsd">
+  <queue name="jm_file_esb">
+    <entry name="queue/jm_file_esb"/>
+  </queue>
+  <queue name="jm_text_esb">
+    <entry name="queue/jm_text_esb"/>
+  </queue>
+  <queue name="jm_nfe_esb">
+    <entry name="queue/jm_nfe_esb"/>
+  </queue>
+  <queue name="jm_nfe_enviada_esb">
+    <entry name="queue/jm_nfe_enviada_esb"/>
+  </queue>
+  <queue name="jm_nfe_processada_esb">
+    <entry name="queue/jm_nfe_processada_esb"/>
+  </queue>
+</configuration>

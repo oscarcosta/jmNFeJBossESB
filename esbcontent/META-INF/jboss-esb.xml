@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<jbossesb parameterReloadSecs="5"
+ xmlns="http://anonsvn.labs.jboss.com/labs/jbossesb/trunk/product/etc/schemas/xml/jbossesb-1.0.1.xsd"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://anonsvn.labs.jboss.com/labs/jbossesb/trunk/product/etc/schemas/xml/jbossesb-1.0.1.xsd http://anonsvn.jboss.org/repos/labs/labs/jbossesb/trunk/product/etc/schemas/xml/jbossesb-1.0.1.xsd">
+ <providers>
+  <fs-provider name="InputProvider">
+   <fs-bus busid="fileReaderGWChannel">
+    <fs-message-filter
+     directory="/home/oscar/Projects/Testes/jmNFeJBossESB/input"
+     error-delete="false"
+     error-directory="/home/oscar/Projects/Testes/jmNFeJBossESB/error"
+     input-suffix=".txt" post-delete="false" post-directory="/home/oscar/Projects/Testes/jmNFeJBossESB/output"/>
+   </fs-bus>
+  </fs-provider>
+  <jms-provider connection-factory="ConnectionFactory" name="JBossMessaging">
+   <jms-bus busid="fileReaderESBChannel">
+    <jms-message-filter dest-name="queue/jm_file_esb" dest-type="QUEUE"/>
+   </jms-bus>
+   <!-- jms-bus busid="nfeTextESBChannel">
+    <jms-message-filter dest-name="queue/jm_text_esb" dest-type="QUEUE"/>
+   </jms-bus -->
+   <!-- jms-bus busid="nfeObjectESBChannel">
+    <jms-message-filter dest-name="queue/jm_object_esb" dest-type="QUEUE"/>
+   </jms-bus -->
+   <jms-bus busid="nfeESBChannel">
+    <jms-message-filter dest-name="queue/jm_nfe_esb" dest-type="QUEUE"/>
+   </jms-bus>
+   <jms-bus busid="nfeEnviadaESBChannel">
+    <jms-message-filter dest-name="queue/jm_nfe_enviada_esb" dest-type="QUEUE"/>
+   </jms-bus>
+   <!-- jms-bus busid="nfeProcessadaESBChannel">
+    <jms-message-filter dest-name="queue/jm_nfe_processada_esb" dest-type="QUEUE"/>
+   </jms-bus -->
+  </jms-provider>
+ </providers>
+ <services>
+  <service category="nfeComposite"
+   description="Le o arquivo texto do arquivo para a fila" name="FileListener">
+   <listeners>
+    <fs-listener busidref="fileReaderGWChannel" is-gateway="true" name="FileGWListener">
+     <property name="mimeType" value="text/plain"/>
+     <property name="encoding" value="UTF-8"/>
+    </fs-listener>
+    <jms-listener busidref="fileReaderESBChannel" name="fileESBListener"/>
+   </listeners>
+   <actions mep="OneWay">
+    <action class="org.jboss.soa.esb.actions.SystemPrintln" name="printBefore">
+     <property name="message" value="[input:FileListener] Dados entrada"/>
+     <!-- property name="printfull" value="true"/ -->
+    </action>
+    <action class="org.jboss.soa.esb.actions.StaticRouter" name="routeToTransformer">
+     <property name="destinations">
+      <route-to service-category="nfeComposite" service-name="EDItoPOJOTransformer"/>
+     </property>
+    </action>
+   </actions>
+  </service>
+  <service category="nfeComposite"
+   description="Realiza a transformacao do arquivo de entrada para os POJOs da NFe"
+   invmScope="GLOBAL" name="EDItoPOJOTransformer">
+   <!-- listeners> <jms-listener busidref="nfeESBChannel" name="textESBListener"/> 
+				</listeners -->
+   <actions mep="OneWay">
+    <action class="org.jboss.soa.esb.actions.SystemPrintln" name="printBefore">
+     <property name="message" value="[input:EDItoPOJOTransformer] Antes Transformacao"/>
+     <!-- property name="printfull" value="true"/ -->
+    </action>
+    <action class="org.jboss.soa.esb.smooks.SmooksAction" name="transformaEDIparaNFe">
+     <property name="smooksConfig" value="/smooks-res.xml"/>
+     <property name="excludeNonSerializables" value="false"/>
+     <property name="resultType" value="JAVA"/>
+     <property name="reportPath" value="/tmp/smooks_report.html"/>
+    </action>
+    <action class="org.jboss.soa.esb.actions.SystemPrintln" name="printAfter">
+     <property name="message" value="[input:EDItoPOJOTransformer] Apos Transformacao"/>
+     <!-- property name="printfull" value="true"/ -->
+    </action>
+    <action class="org.jboss.soa.esb.actions.StaticRouter" name="routeToProcessor">
+     <property name="destinations">
+      <route-to service-category="nfeComposite" service-name="NFeProcessor"/>
+     </property>
+    </action>
+   </actions>
+  </service>
+  <service category="nfeComposite"
+   description="Servico responsavel por processar a NFe"
+   invmScope="GLOBAL" name="NFeProcessor">
+   <!-- listeners> <jms-listener busidref="nfeObjectESBChannel" name="objectESBListener"/> 
+				</listeners -->
+   <actions mep="OneWay">
+    <action class="org.jboss.soa.esb.actions.SystemPrintln" name="printBefore">
+     <property name="message" value="[input:NFeProcessor] Antes Processamento"/>
+     <!-- property name="printfull" value="true"/ -->
+    </action>
+    <action class="com.jm.nfe.esb.actions.ProcessadorNFeAction"
+     name="processadorNFe" process="process"/>
+    <action class="com.jm.nfe.esb.actions.AssinadorNFeAction"
+     name="assinadorNFe" process="process"/>
+    <action class="com.jm.nfe.esb.actions.GeradorNFeAction"
+     name="geradorNFe" process="process"/>
+    <action class="com.jm.nfe.esb.actions.ValidadorNFeAction"
+     name="validadorNFe" process="process"/>
+    <action class="org.jboss.soa.esb.actions.SystemPrintln" name="printAfter">
+     <property name="message" value="[input:NFeProcessor] Apos Processamento"/>
+     <!-- property name="printfull" value="true"/ -->
+    </action>
+    <action class="org.jboss.soa.esb.actions.StaticRouter" name="routeToSender">
+     <property name="destinations">
+      <route-to service-category="nfeComposite" service-name="NFeXMLSender"/>
+     </property>
+    </action>
+   </actions>
+  </service>
+  <service category="nfeComposite"
+   description="Envia a NFe para o WS de recepcao" name="NFeXMLSender">
+   <listeners>
+    <jms-listener busidref="nfeESBChannel" name="JMSNFeListener"/>
+   </listeners>
+   <actions mep="OneWay">
+    <action class="com.jm.nfe.esb.actions.NfeRequestAction" name="requestMapper"/>
+    <action class="org.jboss.soa.esb.actions.soap.SOAPClient" name="enviaNFe">
+     <!-- <property name="wsdl"
+						value="https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeRecepcao2" /> -->
+     <property name="wsdl" value="http://localhost:8080/NFeWSSimulator/NfeRecepcao2?wsdl"/>
+     <property name="SOAPAction" value="nfeRecepcaoLote2"/>
+     <property name="responseAsOgnlMap" value="true"/>
+    </action>
+    <action class="com.jm.nfe.esb.actions.RecepcaoResponseAction" name="responseMapper"/>
+   </actions>
+  </service>
+  <service category="nfeComposite"
+   description="Consulta o estado da NFe no WS de Consulta" name="NFeConfer">
+   <listeners>
+    <jms-listener busidref="nfeEnviadaESBChannel" name="JMSNFeEnviadaListener"/>
+   </listeners>
+   <actions mep="OneWay">
+    <action class="org.jboss.soa.esb.actions.soap.SOAPClient" name="consultaNFe">
+     <!-- property name="wsdl"
+						value="https://hnfe.fazenda.mg.gov.br/nfe2/services/NfeConsulta2" / -->
+     <property name="wsdl" value="http://localhost:8080/NFeWSSimulator/NfeConsulta2?wsdl"/>
+     <property name="SOAPAction" value="nfeConsultaNF2"/>
+     <property name="paramsLocation" value="get-nfeMessage"/>
+     <property name="responseAsOgnlMap" value="true"/>
+    </action>
+    <action class="com.jm.nfe.esb.actions.ConsultaResponseAction" name="responseMapper"/>
+   </actions>
+  </service>
+ </services>
+</jbossesb>

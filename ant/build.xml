@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="jmNFeJBossESB" basedir="../" default="deploy-jboss">
+
+	<property file="ant/build.properties" />
+
+	<property name="src.dir"     value="src"/>
+	<property name="src.dir2"    value="generated"/>
+	<property name="build.dir"   value="build"/>
+	<property name="classes.dir" value="${build.dir}/classes"/>
+
+	<path id="jbossesb.path">
+		<fileset dir="${org.jboss.esb.server.home}/server/default/deploy/jbossesb.esb/">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+
+	<path id="esb.deployer.path">
+		<fileset dir="${org.jboss.esb.server.home}/server/default/deployers/esb.deployer/lib/">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+
+	<path id="build.path">
+		<pathelement location="${classes.dir}"/>
+		<path refid="jbossesb.path"/>
+		<path refid="esb.deployer.path"/>
+	</path>
+
+	<property name="debug" value="true"/>
+
+	<property name="org.jboss.esb.server.server" location="${org.jboss.esb.server.home}/server/${org.jboss.esb.server.config}"/>
+	<property name="org.jboss.esb.server.deploy.dir" location="${org.jboss.esb.server.server}/deploy"/>
+
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+	</target>
+
+	<target name="compile">
+		<mkdir dir="${classes.dir}"/>
+		<javac srcdir="${src.dir2}" destdir="${classes.dir}" debug="${debug}" includeantruntime="true"/>
+		<javac srcdir="${src.dir}" destdir="${classes.dir}" debug="${debug}" includeantruntime="true">
+			<classpath refid="build.path"/>
+		</javac>
+	</target>
+
+	<target name="package-esb" depends="compile">
+		<jar destfile="${build.dir}/${ant.project.name}.esb">
+			<fileset dir="${build.dir}" includes="*.jar,*.war"/>
+			<fileset dir="${classes.dir}" includes="**"/>
+			<fileset dir="${basedir}/esbcontent" includes="**"/>
+			<fileset dir="${basedir}" includes="schemas/**,wsdl/**"/>
+		</jar>
+	</target>
+
+	<target name="build" depends="clean,package-esb"/>
+
+	<target name="deploy-jboss" depends="build">
+		<copy todir="${org.jboss.esb.server.deploy.dir}"
+             file="${build.dir}/${ant.project.name}.esb"/>
+	</target>
+
+	<target name="undeploy-jboss" depends="clean">
+		<delete file="${org.jboss.esb.server.deploy.dir}/${ant.project.name}.esb"/>
+	</target>
+
+</project>

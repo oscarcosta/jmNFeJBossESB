@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<smooks-resource-list xmlns="http://www.milyn.org/xsd/smooks-1.1.xsd"
+	xmlns:edi="http://www.milyn.org/xsd/smooks/edi-1.1.xsd" xmlns:jb="http://www.milyn.org/xsd/smooks/javabean-1.4.xsd"
+	xmlns:esbr="http://www.jboss.org/xsd/jbossesb/smooks/routing-1.0.xsd">
+
+	<edi:reader mappingModel="/mapeamento-dados-entrada.xml" />
+
+	<jb:bean beanId="nfe" class="br.inf.portalfiscal.nfe.TNFe"
+		createOnElement="NOTA_FISCAL">
+		<jb:wiring property="infNFe" beanIdRef="infNFe" />
+	</jb:bean>
+
+	<jb:bean beanId="infNFe" class="br.inf.portalfiscal.nfe.TNFe$InfNFe"
+		createOnElement="NOTA_FISCAL">
+		<jb:wiring property="ide" beanIdRef="ide" />
+		<jb:wiring property="emit" beanIdRef="emit" />
+		<jb:wiring property="dest" beanIdRef="dest" />
+		<jb:wiring property="det" beanIdRef="detList" />
+	</jb:bean>
+
+	<jb:bean beanId="ide" class="br.inf.portalfiscal.nfe.TNFe$InfNFe$Ide"
+		createOnElement="CABECALHO">
+		<jb:value property="mod" data="CABECALHO/MODELO" />
+		<jb:value property="serie" data="CABECALHO/SERIE" />
+		<jb:value property="NNF" data="CABECALHO/NUMERO" />
+		<!-- jb:value property="dEmi" data="CABECALHO/DATA" / -->
+	</jb:bean>
+
+	<jb:bean beanId="emit" class="br.inf.portalfiscal.nfe.TNFe$InfNFe$Emit"
+		createOnElement="CABECALHO">
+		<jb:value property="CNPJ" data="CABECALHO/DOCUMENTO" />
+		<jb:value property="xNome" data="CABECALHO/NOME" />
+		<jb:wiring property="enderEmit" beanIdRef="enderEmit" />
+	</jb:bean>
+
+	<jb:bean beanId="enderEmit" class="br.inf.portalfiscal.nfe.TEnderEmi"
+		createOnElement="CABECALHO">
+		<jb:value property="xLgr" data="CABECALHO/RUA" />
+		<jb:value property="nro" data="CABECALHO/NUMERO" />
+		<jb:value property="xBairro" data="CABECALHO/BAIRRO" />
+		<jb:value property="xMun" data="CABECALHO/CIDADE" />
+		<jb:value property="UF" data="CABECALHO/UF" />
+		<jb:value property="CEP" data="CABECALHO/CEP" />
+	</jb:bean>
+
+	<jb:bean beanId="dest" class="br.inf.portalfiscal.nfe.TNFe$InfNFe$Dest"
+		createOnElement="CLIENTE">
+		<jb:value property="CNPJ" data="CLIENTE/DOCUMENTO" />
+		<jb:value property="xNome" data="CLIENTE/NOME" />
+		<jb:wiring property="enderDest" beanIdRef="enderDest" />
+	</jb:bean>
+
+	<jb:bean beanId="enderDest" class="br.inf.portalfiscal.nfe.TEndereco"
+		createOnElement="CLIENTE">
+		<jb:value property="xLgr" data="CLIENTE/RUA" />
+		<jb:value property="nro" data="CLIENTE/NUMERO" />
+		<jb:value property="xBairro" data="CLIENTE/BAIRRO" />
+		<jb:value property="xMun" data="CLIENTE/CIDADE" />
+		<jb:value property="UF" data="CLIENTE/UF" />
+		<jb:value property="CEP" data="CLIENTE/CEP" />
+	</jb:bean>
+
+	<jb:bean beanId="detList" class="java.util.ArrayList"
+		createOnElement="NOTA_FISCAL">
+		<jb:wiring beanIdRef="det" />
+	</jb:bean>
+
+	<jb:bean beanId="det" class="br.inf.portalfiscal.nfe.TNFe$InfNFe$Det"
+		createOnElement="ITEM">
+		<jb:wiring property="prod" beanIdRef="prod" />
+	</jb:bean>
+
+	<jb:bean beanId="prod" class="br.inf.portalfiscal.nfe.TNFe$InfNFe$Det$Prod"
+		createOnElement="ITEM">
+		<jb:value property="cProd" data="ITEM/CODIGO" />
+		<jb:value property="xProd" data="ITEM/DESCRICAO" />
+		<jb:value property="CFOP" data="ITEM/CFOP" />
+		<jb:value property="qCom" data="ITEM/QUANTIDADE" />
+		<jb:value property="vUnCom" data="ITEM/VALOR_UNITARIO" />
+		<jb:value property="vProd" data="ITEM/VALOR_TOTAL" />
+	</jb:bean>
+
+	<!-- <esbr:routeBean beanIdRef="nfe" toServiceCategory="nfeComposite" toServiceName="NFeProcessor" 
+		routeOnElement="NOTA_FISCAL"/> -->
+
+</smooks-resource-list>
